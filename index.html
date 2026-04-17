@@ -26,12 +26,19 @@
                     <p class="text-[9px] opacity-60 uppercase tracking-widest mt-1">Sistem Integrasi Saldo E-Kantin</p>
                 </div>
             </div>
-            <div class="flex gap-4 items-center">
-                <div class="text-right">
-                    <p class="text-[9px] opacity-50 uppercase">Omzet Terfilter:</p>
-                    <p class="font-black text-yellow-400 text-xl">Rp <span id="totalOmzet">0</span></p>
+            
+            <div class="flex gap-2 items-center">
+                <a href="kelola_stok.html" class="bg-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-500 transition-all border border-indigo-400 flex items-center gap-2">
+                    <i class="fas fa-boxes"></i> Stok
+                </a>
+                <a href="admin.html" class="bg-slate-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-slate-600 transition-all border border-slate-500 flex items-center gap-2">
+                    <i class="fas fa-user-shield"></i> Admin
+                </a>
+                <div class="h-8 w-[1px] bg-white/20 mx-2"></div>
+                <div class="text-right mr-2">
+                    <p class="text-[9px] opacity-50 uppercase leading-none">Omzet Hari Ini:</p>
+                    <p class="font-black text-yellow-400 text-lg leading-none">Rp <span id="totalOmzet">0</span></p>
                 </div>
-                <div class="h-10 w-[2px] bg-white/10 mx-2"></div>
                 <input type="date" id="filterTanggal" class="bg-indigo-800 p-2 rounded-xl text-xs font-bold border border-indigo-700 outline-none">
             </div>
         </div>
@@ -121,11 +128,10 @@
         window.onload = () => { document.getElementById('inputBarcode').focus(); };
         document.addEventListener('click', () => { document.getElementById('inputBarcode').focus(); });
 
-        // Set Default Filter Tanggal
         const hariIni = new Date().toISOString().split('T')[0];
         document.getElementById('filterTanggal').value = hariIni;
 
-        // --- 1. PROSES SCAN BARCODE (TERINTEGRASI ADMIN) ---
+        // --- 1. SCAN BARCODE ---
         document.getElementById('inputBarcode').addEventListener('change', function(e) {
             const idSiswa = e.target.value.trim();
             if (!idSiswa) return;
@@ -149,6 +155,10 @@
             const data = snap.val();
             const qa = document.getElementById('quickAction');
             qa.innerHTML = '';
+            if(!data) {
+                qa.innerHTML = '<p class="col-span-3 text-center text-xs text-slate-400 py-10">Stok barang belum diinput. Klik tombol "Stok" di atas.</p>';
+                return;
+            }
             for(let key in data) {
                 const s = data[key];
                 qa.innerHTML += `
@@ -200,7 +210,7 @@
             updateTampilanKeranjang();
         }
 
-        // --- 3. PROSES BAYAR & POTONG SALDO ---
+        // --- 3. PROSES BAYAR & POTONG SALDO & POTONG STOK ---
         function prosesBayar() {
             if(!dataSiswaAktif) return alert("Scan Kartu Siswa Dulu!");
             if(keranjangBelanja.length === 0) return alert("Keranjang masih kosong!");
@@ -210,10 +220,10 @@
             const updates = {};
             const itemsName = keranjangBelanja.map(i => i.nama).join(", ");
 
-            // Potong Saldo (KANTIN_USERS)
+            // 1. Potong Saldo
             updates['kantin_users/' + dataSiswaAktif.id + '/saldo'] = Number(dataSiswaAktif.saldo) - totalHarga;
 
-            // Catat Laporan (KOPERASI/PENJUALAN)
+            // 2. Catat Penjualan
             const salesKey = db.ref('koperasi/penjualan').push().key;
             updates['koperasi/penjualan/' + salesKey] = {
                 namaSiswa: dataSiswaAktif.nama,
@@ -223,13 +233,20 @@
                 tanggal: filterTgl
             };
 
+            // 3. Update Stok Barang (Looping Keranjang)
+            keranjangBelanja.forEach(item => {
+                db.ref('koperasi/stok/' + item.nama).once('value', (snap) => {
+                    const currentStok = snap.val().stok;
+                    db.ref('koperasi/stok/' + item.nama + '/stok').set(currentStok - 1);
+                });
+            });
+
             db.ref().update(updates).then(() => {
-                alert("🛒 PEMBAYARAN BERHASIL!\nSiswa: " + dataSiswaAktif.nama + "\nTotal: Rp " + totalHarga.toLocaleString());
+                alert("🛒 PEMBAYARAN BERHASIL!");
                 resetKeranjang();
-            }).catch(err => alert("Gagal transaksi: " + err.message));
+            });
         }
 
-        // --- 4. MONITORING RIWAYAT & FILTER ---
         function loadRiwayat() {
             const filterTgl = document.getElementById('filterTanggal').value;
             db.ref('koperasi/penjualan').on('value', (snap) => {

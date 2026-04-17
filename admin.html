@@ -3,122 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pusat Admin - Smart 169</title>
+    <title>Dashboard Keuangan - SDN 169</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-    </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen pb-20 font-sans">
 
     <nav class="bg-indigo-950 p-6 text-white shadow-xl border-b-4 border-yellow-400 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-indigo-950 p-2 rounded-xl font-black italic text-xs">ADMIN</div>
-                <h1 class="font-black text-xl uppercase tracking-tighter">SDN 169 PUSAT</h1>
-            </div>
+            <h1 class="font-black text-xl uppercase tracking-tighter">SDN 169 <span class="text-yellow-400">FINANCE</span></h1>
             <div class="flex gap-2">
-                <a href="kasir_koperasi.html" class="bg-indigo-600 px-4 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-indigo-500 transition-all border border-indigo-400">
-                    <i class="fas fa-shopping-cart mr-1"></i> Kasir Koperasi
-                </a>
-                <a href="kelola_stok.html" class="bg-slate-700 px-4 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-slate-600 transition-all border border-slate-500">
-                    <i class="fas fa-boxes mr-1"></i> Stok Barang
-                </a>
+                <a href="kasir_koperasi.html" class="bg-indigo-600 px-4 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-indigo-500 transition-all">Kasir</a>
+                <a href="kelola_stok.html" class="bg-slate-700 px-4 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-slate-600 transition-all">Stok</a>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 md:p-8 space-y-8">
+    <div class="container mx-auto p-4 space-y-6">
         
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-200">
-                <h3 class="text-sm font-black text-indigo-900 mb-6 uppercase italic flex items-center gap-2">
-                    <i class="fas fa-bolt text-yellow-500"></i> Quick Top Up Saldo
-                </h3>
-                <div class="space-y-4">
-                    <div class="relative">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Scan Kartu Siswa</label>
-                        <input type="text" id="idSiswaTopUp" placeholder="..." 
-                            class="w-full mt-1 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-lg outline-none focus:border-indigo-500 transition-all">
-                        <i class="fas fa-qrcode absolute right-4 top-10 text-slate-300"></i>
-                    </div>
-
-                    <div id="infoSiswaTopUp" class="hidden p-4 bg-indigo-50 rounded-[1.5rem] border-2 border-indigo-100 animate-pulse">
-                        <p class="text-[10px] font-black text-indigo-300 uppercase">Pemilik Akun:</p>
-                        <h4 id="namaSiswaTopUp" class="font-black text-indigo-900 uppercase italic">--</h4>
-                        <div class="flex justify-between mt-2 pt-2 border-t border-indigo-200">
-                            <span class="text-[10px] font-bold text-indigo-400">SALDO SAAT INI:</span>
-                            <span id="saldoSiswaTopUp" class="font-black text-indigo-600 text-sm">Rp 0</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Nominal Top Up</label>
-                        <div class="grid grid-cols-2 gap-2 mt-1">
-                            <button onclick="setNominal(5000)" class="bg-slate-50 p-2 rounded-xl text-[10px] font-bold hover:bg-yellow-100 border border-slate-100 transition-all">5.000</button>
-                            <button onclick="setNominal(10000)" class="bg-slate-50 p-2 rounded-xl text-[10px] font-bold hover:bg-yellow-100 border border-slate-100 transition-all">10.000</button>
-                        </div>
-                        <input type="number" id="jumlahTopUp" placeholder="Input Manual (Rp)" 
-                            class="w-full mt-2 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-sm outline-none focus:border-green-500">
-                    </div>
-                    <button id="btnProsesTopUp" onclick="prosesTopUp()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all uppercase text-xs">
-                        Kirim Saldo Sekarang
-                    </button>
-                </div>
-            </div>
-
-            <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-200">
-                <h3 class="text-sm font-black text-slate-400 mb-6 uppercase tracking-widest italic">Trend Penjualan Sekolah</h3>
-                <canvas id="chartPenjualan" height="130"></canvas>
-            </div>
-        </div>
-
-        <div class="bg-indigo-900 p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-indigo-700">
-            <h3 class="text-sm font-black text-yellow-400 uppercase italic mb-6 flex items-center gap-2">
-                <i class="fas fa-history"></i> Riwayat Transaksi Realtime (Kantin & Koperasi)
+        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
+            <h3 class="text-xs font-black text-indigo-900 mb-4 uppercase italic flex items-center gap-2">
+                <i class="fas fa-calculator text-emerald-500"></i> Analisa Harga & Margin Keuntungan
             </h3>
-            <div class="overflow-x-auto custom-scroll max-h-[400px]">
-                <table class="w-full text-left border-separate border-spacing-y-2">
+            <div class="overflow-x-auto">
+                <table class="w-full text-[11px] font-bold">
                     <thead>
-                        <tr class="text-[10px] font-black text-indigo-300 uppercase italic">
-                            <th class="px-6 py-2">Waktu</th>
-                            <th class="px-6 py-2">Nama Siswa</th>
-                            <th class="px-6 py-2">Item Belanja</th>
-                            <th class="px-6 py-2">Unit</th>
-                            <th class="px-6 py-2 text-right">Total</th>
+                        <tr class="text-slate-400 uppercase border-b">
+                            <th class="p-3 text-left">Nama Barang</th>
+                            <th class="p-3 text-left">Harga Beli (Modal)</th>
+                            <th class="p-3 text-left">Margin (%)</th>
+                            <th class="p-3 text-left">Harga Jual</th>
+                            <th class="p-3 text-left">Profit/Pcs</th>
+                            <th class="p-3 text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelRiwayat" class="font-bold text-xs uppercase text-white italic">
+                    <tbody id="tabelUntungRugi">
                         </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-200">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h3 class="text-sm font-black text-indigo-900 uppercase italic">Daftar Anggota Smart 169</h3>
-                <input type="text" id="cariSiswa" placeholder="Cari Nama Anggota..." onkeyup="filterTabelSiswa()"
-                    class="p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs font-bold outline-none w-full md:w-64 focus:border-indigo-500">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-blue-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Total Modal Stok</p>
+                <h2 id="totalModal" class="text-2xl font-black text-blue-600">Rp 0</h2>
+                <p class="text-[8px] italic text-slate-400 mt-1">*Nilai uang di dalam barang</p>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-separate border-spacing-y-2">
-                    <thead>
-                        <tr class="text-[10px] font-black text-slate-400 uppercase italic">
-                            <th class="px-4">ID</th>
-                            <th class="px-4">Nama Lengkap</th>
-                            <th class="px-4">Saldo</th>
-                            <th class="px-4 text-right">Opsi</th>
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-indigo-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Omset Hari Ini</p>
+                <h2 id="omsetHarian" class="text-2xl font-black text-indigo-600">Rp 0</h2>
+                <p class="text-[8px] italic text-slate-400 mt-1">*Penjualan barang koperasi</p>
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-emerald-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Estimasi Keuntungan</p>
+                <h2 id="totalUntung" class="text-2xl font-black text-emerald-600">Rp 0</h2>
+                <p class="text-[8px] italic text-slate-400 mt-1">*Berdasarkan barang terjual</p>
+            </div>
+        </div>
+
+        <div class="bg-indigo-950 p-6 rounded-[2.5rem] shadow-xl">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <h3 class="text-xs font-black text-yellow-400 uppercase italic flex items-center gap-2">
+                    <i class="fas fa-history"></i> Riwayat Transaksi Realtime
+                </h3>
+                <div class="flex items-center gap-2 bg-indigo-900 p-2 rounded-2xl border border-indigo-800">
+                    <i class="fas fa-calendar text-indigo-400 ml-2"></i>
+                    <input type="date" id="filterTanggal" onchange="loadRiwayat()" 
+                        class="bg-transparent text-white text-[10px] font-bold outline-none uppercase">
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-[400px]">
+                <table class="w-full text-left text-[11px]">
+                    <thead class="text-indigo-300 uppercase italic border-b border-indigo-800">
+                        <tr>
+                            <th class="p-3">Waktu</th>
+                            <th class="p-3">Siswa</th>
+                            <th class="p-3">Item</th>
+                            <th class="p-3">Unit</th>
+                            <th class="p-3 text-right">Total</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelSiswa" class="font-bold text-sm italic uppercase"></tbody>
+                    <tbody id="tabelRiwayat" class="text-white font-medium italic">
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -135,125 +103,114 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. SISTEM TOP UP PERBAIKAN
-        function setNominal(n) { document.getElementById('jumlahTopUp').value = n; }
+        // Ambil Tanggal Hari Ini untuk Filter Default
+        document.getElementById('filterTanggal').valueAsDate = new Date();
 
-        document.getElementById('idSiswaTopUp').addEventListener('input', function(e) {
-            const id = e.target.value.trim();
-            if(id.length > 2) {
-                db.ref('kantin_users/' + id).once('value', (snap) => {
-                    const s = snap.val();
-                    if(s) {
-                        document.getElementById('infoSiswaTopUp').classList.remove('hidden');
-                        document.getElementById('namaSiswaTopUp').innerText = s.nama;
-                        document.getElementById('saldoSiswaTopUp').innerText = "Rp " + s.saldo.toLocaleString();
-                    } else {
-                        document.getElementById('infoSiswaTopUp').classList.add('hidden');
-                    }
-                });
-            }
-        });
-
-        async function prosesTopUp() {
-            const id = document.getElementById('idSiswaTopUp').value.trim();
-            const jumlah = parseInt(document.getElementById('jumlahTopUp').value);
-            const btn = document.getElementById('btnProsesTopUp');
-            
-            if(!id || isNaN(jumlah) || jumlah <= 0) return alert("Data tidak valid!");
-
-            btn.disabled = true; btn.innerText = "PROSES...";
-
-            try {
-                const snap = await db.ref('kantin_users/' + id).once('value');
-                const user = snap.val();
-                if(!user) throw new Error("Siswa tidak ditemukan!");
-
-                const saldoBaru = user.saldo + jumlah;
-                await db.ref('kantin_users/' + id + '/saldo').set(saldoBaru);
+        // 1. FUNGSI UNTUNG RUGI & MODAL
+        function loadKeuanganKoperasi() {
+            db.ref('koperasi/stok').on('value', snap => {
+                const container = document.getElementById('tabelUntungRugi');
+                container.innerHTML = "";
+                let totalModalSemua = 0;
                 
-                // Catat di Riwayat sebagai TOP UP
-                await db.ref('kantin_laporan').push({
-                    idSiswa: id, namaSiswa: user.nama, total: jumlah, 
-                    item: "TOP UP SALDO", unit: "Pusat Admin", waktu: new Date().toLocaleString('id-ID')
-                });
+                snap.forEach(itemSnap => {
+                    const nama = itemSnap.key;
+                    const d = itemSnap.val();
+                    const hBeli = d.harga_beli || 0;
+                    const hJual = d.harga || 0;
+                    const margin = hBeli > 0 ? Math.round(((hJual - hBeli) / hBeli) * 100) : 0;
+                    const profitPcs = hJual - hBeli;
+                    
+                    totalModalSemua += (hBeli * d.stok);
 
-                alert(`✅ TOP UP BERHASIL!\nSiswa: ${user.nama}\nSaldo Baru: Rp ${saldoBaru.toLocaleString()}`);
-                
-                document.getElementById('idSiswaTopUp').value = "";
-                document.getElementById('jumlahTopUp').value = "";
-                document.getElementById('infoSiswaTopUp').classList.add('hidden');
-            } catch (e) {
-                alert(e.message);
-            } finally {
-                btn.disabled = false; btn.innerText = "Kirim Saldo Sekarang";
+                    container.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50 transition-all">
+                            <td class="p-3 uppercase text-indigo-900">${nama}</td>
+                            <td class="p-3">
+                                <input type="number" value="${hBeli}" onchange="updateHarga('${nama}', 'harga_beli', this.value)" 
+                                    class="w-20 bg-slate-100 p-1 rounded border-none outline-none focus:ring-1 ring-indigo-500">
+                            </td>
+                            <td class="p-3">
+                                <button onclick="hitungMargin('${nama}', ${hBeli})" class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded text-[9px]">
+                                    <i class="fas fa-percentage mr-1"></i>${margin}%
+                                </button>
+                            </td>
+                            <td class="p-3">
+                                <input type="number" value="${hJual}" onchange="updateHarga('${nama}', 'harga', this.value)" 
+                                    class="w-20 bg-emerald-50 text-emerald-700 p-1 rounded border-none outline-none font-black">
+                            </td>
+                            <td class="p-3 text-emerald-600">Rp ${profitPcs.toLocaleString()}</td>
+                            <td class="p-3 text-right">
+                                <span class="text-[9px] text-slate-400">Stok: ${d.stok}</span>
+                            </td>
+                        </tr>`;
+                });
+                document.getElementById('totalModal').innerText = "Rp " + totalModalSemua.toLocaleString();
+            });
+        }
+
+        function updateHarga(nama, field, nilai) {
+            db.ref(`koperasi/stok/${nama}/${field}`).set(parseInt(nilai));
+        }
+
+        function hitungMargin(nama, hBeli) {
+            const persen = prompt("Masukkan Persentase Keuntungan (%) yang diinginkan:", "10");
+            if (persen != null) {
+                const hargaBaru = Math.ceil(hBeli * (1 + parseInt(persen)/100));
+                db.ref(`koperasi/stok/${nama}/harga`).set(hargaBaru);
             }
         }
 
-        // 2. RIWAYAT TRANSAKSI REALTIME
-        db.ref('kantin_laporan').limitToLast(20).on('value', (snap) => {
-            const container = document.getElementById('tabelRiwayat');
-            container.innerHTML = "";
-            const data = [];
-            snap.forEach(child => { data.unshift(child.val()); }); // Data terbaru di atas
+        // 2. FUNGSI OMSET & RIWAYAT (DENGAN FILTER TANGGAL)
+        function loadRiwayat() {
+            const tglFilter = document.getElementById('filterTanggal').value; // Format: YYYY-MM-DD
+            const tglIndo = new Date(tglFilter).toLocaleDateString('id-ID');
 
-            data.forEach(item => {
-                const isTopUp = item.item === "TOP UP SALDO";
-                container.innerHTML += `
-                    <tr class="bg-indigo-800/50 hover:bg-indigo-800 border-l-4 ${isTopUp ? 'border-green-400' : 'border-yellow-400'} transition-all">
-                        <td class="px-6 py-4 text-[10px] text-indigo-300 font-bold">${item.waktu}</td>
-                        <td class="px-6 py-4">${item.namaSiswa}</td>
-                        <td class="px-6 py-4 text-[10px] max-w-xs truncate">${item.item}</td>
-                        <td class="px-6 py-4"><span class="bg-indigo-700 px-3 py-1 rounded-full text-[8px]">${item.unit || 'KANTIN'}</span></td>
-                        <td class="px-6 py-4 text-right ${isTopUp ? 'text-green-400' : 'text-yellow-400'}">Rp ${item.total.toLocaleString()}</td>
-                    </tr>`;
+            db.ref('kantin_laporan').on('value', snap => {
+                const container = document.getElementById('tabelRiwayat');
+                container.innerHTML = "";
+                let omsetKop = 0;
+                let untungKop = 0;
+
+                // Ambil data stok dulu untuk hitung untung harian
+                db.ref('koperasi/stok').once('value', stokSnap => {
+                    const dataStok = stokSnap.val() || {};
+
+                    snap.forEach(child => {
+                        const d = child.val();
+                        // Filter: Apakah waktu di laporan mengandung tanggal yang dipilih?
+                        if (d.waktu.includes(tglIndo)) {
+                            const isKop = d.unit === "KOPERASI";
+                            if (isKop) {
+                                omsetKop += d.total;
+                                // Hitung estimasi untung dari item yang terjual
+                                // Catatan: Ini estimasi kasar jika item lebih dari satu
+                                const namaItem = d.item.split(", ")[0]; 
+                                if(dataStok[namaItem]) {
+                                    untungKop += (dataStok[namaItem].harga - dataStok[namaItem].harga_beli);
+                                }
+                            }
+
+                            container.innerHTML = `
+                                <tr class="border-b border-indigo-900/50 hover:bg-indigo-900/50 transition-all">
+                                    <td class="p-3 text-indigo-400">${d.waktu.split(" ")[1]}</td>
+                                    <td class="p-3 uppercase">${d.namaSiswa}</td>
+                                    <td class="p-3 text-[10px] max-w-xs truncate uppercase">${d.item}</td>
+                                    <td class="p-3"><span class="bg-indigo-800 px-2 py-0.5 rounded text-[8px] uppercase">${d.unit || 'KANTIN'}</span></td>
+                                    <td class="p-3 text-right text-yellow-400 font-black">Rp ${d.total.toLocaleString()}</td>
+                                </tr>` + container.innerHTML;
+                        }
+                    });
+
+                    document.getElementById('omsetHarian').innerText = "Rp " + omsetKop.toLocaleString();
+                    document.getElementById('totalUntung').innerText = "Rp " + untungKop.toLocaleString();
+                });
             });
-        });
-
-        // 3. TABEL SISWA
-        db.ref('kantin_users').on('value', (snap) => {
-            const container = document.getElementById('tabelSiswa');
-            container.innerHTML = '';
-            snap.forEach(child => {
-                const s = child.val();
-                container.innerHTML += `
-                    <tr class="bg-slate-50 hover:bg-indigo-50 transition-all border-b border-white">
-                        <td class="p-4 rounded-l-2xl text-indigo-400 font-black">${child.key}</td>
-                        <td class="p-4 text-slate-800">${s.nama}</td>
-                        <td class="p-4 text-green-600 font-black italic">Rp ${s.saldo.toLocaleString()}</td>
-                        <td class="p-4 rounded-r-2xl text-right">
-                             <button onclick="hapusSiswa('${child.key}')" class="text-slate-200 hover:text-red-500 transition-colors">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
-                    </tr>`;
-            });
-        });
-
-        // 4. CHART (Simulasi data)
-        const ctx = document.getElementById('chartPenjualan').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-                datasets: [{
-                    label: 'Omzet Gabungan',
-                    data: [450000, 590000, 320000, 810000, 560000, 950000],
-                    borderColor: '#4f46e5', tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.05)'
-                }]
-            },
-            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
-
-        function filterTabelSiswa() {
-            let input = document.getElementById("cariSiswa").value.toUpperCase();
-            let tr = document.getElementById("tabelSiswa").getElementsByTagName("tr");
-            for (let i = 0; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td")[1];
-                if (td && (td.textContent || td.innerText).toUpperCase().indexOf(input) > -1) {
-                    tr[i].style.display = "";
-                } else { tr[i].style.display = "none"; }
-            }
         }
+
+        // Jalankan Fungsi
+        loadKeuanganKoperasi();
+        loadRiwayat();
     </script>
 </body>
 </html>

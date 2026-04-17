@@ -3,144 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koperasi ATK - Unit Bendahara SDN 169</title>
+    <title>Koperasi Cashless SDN 169 - Realtime</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen">
+<body class="bg-indigo-50 font-sans min-h-screen pb-10">
 
-    <nav class="bg-indigo-800 p-6 shadow-xl text-white sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center">
+    <nav class="bg-indigo-900 p-6 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-xl font-black tracking-tighter">KOPERASI ATK</h1>
-                <p class="text-[10px] opacity-70 uppercase">Unit Usaha Bendahara SDN 169</p>
+                <h1 class="font-black tracking-tighter text-2xl italic">KOPERASI SMART 169</h1>
+                <p class="text-[10px] opacity-70 uppercase tracking-widest">Sistem Penjualan Terintegrasi Saldo</p>
             </div>
-            <div class="text-right">
-                <p class="text-[10px] opacity-70">Omzet Penjualan</p>
-                <p class="text-xl font-black text-yellow-400">Rp <span id="totalOmzet">0</span></p>
+            <div class="flex gap-4">
+                <div class="bg-indigo-800 p-3 rounded-2xl border border-indigo-700 text-center min-w-[120px]">
+                    <p class="text-[9px] uppercase opacity-60">Omzet Filter</p>
+                    <p class="font-bold text-yellow-400">Rp <span id="totalOmzet">0</span></p>
+                </div>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="lg:col-span-4 space-y-6">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-indigo-100">
-                <h3 class="font-bold mb-4 text-indigo-900">Kelola Inventaris</h3>
-                <div class="space-y-3">
-                    <input type="text" id="namaBarang" placeholder="Nama Barang" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="hargaBarang" placeholder="Harga" class="p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
-                        <input type="number" id="stokBarang" placeholder="Stok" class="p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-xl border-t-8 border-indigo-600">
+                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase italic">Arahkan Kursor & Scan Kartu:</label>
+                <input type="text" id="inputBarcode" autofocus 
+                    class="w-full p-5 text-center text-xl font-black bg-slate-50 border-2 border-indigo-100 rounded-2xl focus:ring-4 focus:ring-indigo-500 outline-none" 
+                    placeholder="SCAN BARCODE DI SINI">
+                
+                <div id="infoSiswa" class="mt-4 p-4 bg-green-50 rounded-2xl border border-green-100 hidden">
+                    <p class="text-[10px] text-green-600 font-bold uppercase">Anggota Terdeteksi:</p>
+                    <div class="flex justify-between items-end">
+                        <h2 id="dispNama" class="text-lg font-black text-indigo-900">-</h2>
+                        <h2 id="dispSaldo" class="text-xl font-black text-green-700">Rp 0</h2>
                     </div>
-                    <button onclick="updateStok()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition shadow-lg">Simpan Barang</button>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-indigo-100">
-                <h3 class="font-bold mb-4 text-sm uppercase opacity-50">Sisa Stok</h3>
-                <div id="listStok" class="space-y-2"></div>
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-md border border-indigo-100">
+                <h3 class="font-bold mb-4 flex justify-between">Keranjang <span><i class="fas fa-shopping-basket"></i></span></h3>
+                <div id="keranjang" class="space-y-2 min-h-[100px] text-sm">
+                    <p class="text-center text-gray-300 py-8 italic">Keranjang kosong...</p>
+                </div>
+                <div class="border-t mt-4 pt-4 flex justify-between items-center font-black">
+                    <span>Total Bayar:</span>
+                    <span id="totalBayar" class="text-2xl text-indigo-600">Rp 0</span>
+                </div>
+                <button onclick="prosesBayar()" class="w-full mt-4 bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-green-600 hover:scale-105 transition-all">PROSES POTONG SALDO</button>
             </div>
         </div>
 
-        <div class="lg:col-span-8 bg-white p-6 rounded-[2.5rem] shadow-xl border border-indigo-100">
-            <h3 class="font-bold text-lg mb-6"><i class="fas fa-cash-register mr-2 text-indigo-500"></i> Kasir Penjualan</h3>
-            
-            <div id="quickAction" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8"></div>
+        <div class="lg:col-span-7 space-y-6">
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-indigo-100">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="font-black text-indigo-900"><i class="fas fa-history mr-2"></i> RIWAYAT PENJUALAN</h3>
+                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl">
+                        <i class="fas fa-filter text-gray-400 ml-2"></i>
+                        <input type="date" id="filterTanggal" class="bg-transparent font-bold text-sm outline-none">
+                    </div>
+                </div>
 
-            <h4 class="font-bold text-xs uppercase opacity-40 mb-3 tracking-widest">Transaksi Hari Ini</h4>
-            <div id="tabelPenjualan" class="space-y-3"></div>
+                <div class="overflow-hidden">
+                    <div id="listPenjualan" class="space-y-3 h-[300px] overflow-y-auto pr-2">
+                        </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-indigo-100">
+                <h3 class="font-bold mb-4 text-xs text-gray-400 uppercase tracking-widest">Katalog ATK</h3>
+                <div id="quickAction" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // KOPAS CONFIG DARI APLIKASI BENDAHARA BAPAK KE SINI
+        // PAKAI CONFIG BENDAHARA BAPAK
         const firebaseConfig = {
-          apiKey: "AIzaSyBc4-0es7edfyw9-V1GdIGJnYxeEW70omc",
-          authDomain: "aplikasi-bintang.firebaseapp.com",
-          databaseURL: "https://aplikasi-bintang-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "aplikasi-bintang",
-          storageBucket: "aplikasi-bintang.firebasestorage.app",
+            apiKey: "AIzaSyBc4-0es7edfyw9-V1GdIGJnYxeEW70omc",
+            authDomain: "aplikasi-bintang.firebaseapp.com",
+            databaseURL: "https://aplikasi-bintang-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "aplikasi-bintang",
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. UPDATE STOK (Masuk ke folder 'koperasi/stok')
-        function updateStok() {
-            const nama = document.getElementById('namaBarang').value;
-            const harga = document.getElementById('hargaBarang').value;
-            const stok = document.getElementById('stokBarang').value;
-            if(!nama || !harga || !stok) return alert("Isi data dengan lengkap!");
+        let keranjangBelanja = [];
+        let totalHarga = 0;
+        let dataSiswaAktif = null;
 
-            db.ref('koperasi/stok/' + nama).set({
-                harga: parseInt(harga),
-                stok: parseInt(stok)
+        // SET DEFAULT TANGGAL HARI INI
+        const hariIni = new Date().toISOString().split('T')[0];
+        document.getElementById('filterTanggal').value = hariIni;
+
+        // 1. SCAN BARCODE
+        document.getElementById('inputBarcode').addEventListener('change', function(e) {
+            const idSiswa = e.target.value;
+            db.ref('data_siswa/' + idSiswa).once('value', (snap) => {
+                const siswa = snap.val();
+                if(siswa) {
+                    dataSiswaAktif = { id: idSiswa, ...siswa };
+                    document.getElementById('infoSiswa').classList.remove('hidden');
+                    document.getElementById('dispNama').innerText = siswa.nama;
+                    document.getElementById('dispSaldo').innerText = "Rp " + siswa.saldo.toLocaleString();
+                } else { alert("Siswa tidak ditemukan!"); }
+                e.target.value = '';
             });
-            document.getElementById('namaBarang').value = '';
-            document.getElementById('hargaBarang').value = '';
-            document.getElementById('stokBarang').value = '';
-        }
+        });
 
-        // 2. MONITOR STOK & BUTTONS
+        // 2. LOAD PRODUK
         db.ref('koperasi/stok').on('value', (snap) => {
             const data = snap.val();
-            const listStok = document.getElementById('listStok');
-            const quickAction = document.getElementById('quickAction');
-            listStok.innerHTML = ''; quickAction.innerHTML = '';
-            if(!data) return;
-
+            const qa = document.getElementById('quickAction');
+            qa.innerHTML = '';
             for(let key in data) {
-                listStok.innerHTML += `
-                    <div class="flex justify-between p-3 bg-indigo-50 rounded-xl text-xs">
-                        <span>${key}</span>
-                        <span class="font-bold text-indigo-700">${data[key].stok} pcs</span>
-                    </div>`;
-                
-                quickAction.innerHTML += `
-                    <button onclick="jual('${key}', ${data[key].harga}, ${data[key].stok})" 
-                        class="p-4 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:shadow-md text-left transition">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold">${key}</p>
-                        <p class="font-black text-indigo-900">Rp ${data[key].harga.toLocaleString()}</p>
+                qa.innerHTML += `
+                    <button onclick="tambahKeKeranjang('${key}', ${data[key].harga}, ${data[key].stok})" 
+                        class="p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-indigo-600 hover:text-white transition group text-left">
+                        <p class="text-[10px] font-bold opacity-50 uppercase">${key}</p>
+                        <p class="font-black">Rp ${data[key].harga.toLocaleString()}</p>
+                        <p class="text-[9px] mt-1">Stok: ${data[key].stok}</p>
                     </button>`;
             }
         });
 
-        // 3. PROSES JUAL
-        function jual(nama, harga, stokLama) {
-            if(stokLama <= 0) return alert("Stok Habis!");
-            
-            // Kurangi stok
-            db.ref('koperasi/stok/' + nama).update({ stok: stokLama - 1 });
+        function tambahKeKeranjang(nama, harga, stok) {
+            if(stok <= 0) return alert("Stok Habis!");
+            keranjangBelanja.push({nama, harga});
+            updateTampilanKeranjang();
+        }
 
-            // Catat penjualan (folder 'koperasi/penjualan')
-            db.ref('koperasi/penjualan').push({
-                item: nama,
-                harga: harga,
-                waktu: new Date().toLocaleTimeString('id-ID')
+        function updateTampilanKeranjang() {
+            const div = document.getElementById('keranjang');
+            div.innerHTML = ''; totalHarga = 0;
+            keranjangBelanja.forEach(item => {
+                totalHarga += item.harga;
+                div.innerHTML += `<div class="flex justify-between border-b pb-1 font-medium"><span>${item.nama}</span><span>Rp ${item.harga.toLocaleString()}</span></div>`;
+            });
+            document.getElementById('totalBayar').innerText = "Rp " + totalHarga.toLocaleString();
+        }
+
+        // 3. PROSES BAYAR & POTONG STOK
+        function prosesBayar() {
+            if(!dataSiswaAktif || keranjangBelanja.length === 0) return alert("Lengkapi data!");
+            if(dataSiswaAktif.saldo < totalHarga) return alert("Saldo tidak cukup!");
+
+            const tglKey = document.getElementById('filterTanggal').value;
+            const updates = {};
+            
+            // Kurangi Saldo
+            updates['data_siswa/' + dataSiswaAktif.id + '/saldo'] = dataSiswaAktif.saldo - totalHarga;
+
+            // Simpan Penjualan
+            const salesKey = db.ref('koperasi/penjualan').push().key;
+            const dataJual = {
+                namaSiswa: dataSiswaAktif.nama,
+                items: keranjangBelanja.map(i => i.nama).join(", "),
+                total: totalHarga,
+                jam: new Date().toLocaleTimeString('id-ID'),
+                tanggal: tglKey
+            };
+            updates['koperasi/penjualan/' + salesKey] = dataJual;
+
+            db.ref().update(updates).then(() => {
+                alert("Berhasil!");
+                keranjangBelanja = []; dataSiswaAktif = null;
+                document.getElementById('infoSiswa').classList.add('hidden');
+                updateTampilanKeranjang();
             });
         }
 
-        // 4. RIWAYAT PENJUALAN
-        db.ref('koperasi/penjualan').on('value', (snap) => {
-            const data = snap.val();
-            const list = document.getElementById('tabelPenjualan');
-            let total = 0;
-            list.innerHTML = '';
-            if(!data) return;
+        // 4. REALTIME MONITOR & FILTER TANGGAL
+        function loadRiwayat() {
+            const filterTgl = document.getElementById('filterTanggal').value;
+            db.ref('koperasi/penjualan').on('value', (snap) => {
+                const data = snap.val();
+                const list = document.getElementById('listPenjualan');
+                let totalOmzet = 0;
+                list.innerHTML = '';
 
-            Object.keys(data).reverse().forEach(id => {
-                const p = data[id];
-                total += p.harga;
-                list.innerHTML += `
-                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <div class="text-sm font-bold text-slate-700">${p.item} <span class="block text-[9px] font-normal text-gray-400">${p.waktu}</span></div>
-                        <div class="font-black text-indigo-600">Rp ${p.harga.toLocaleString()}</div>
-                    </div>`;
+                if(!data) return;
+
+                Object.keys(data).reverse().forEach(key => {
+                    const p = data[key];
+                    if(p.tanggal === filterTgl) {
+                        totalOmzet += p.total;
+                        list.innerHTML += `
+                            <div class="flex justify-between items-center p-4 bg-slate-50 border-l-4 border-indigo-500 rounded-xl">
+                                <div>
+                                    <p class="text-sm font-black text-slate-800">${p.namaSiswa}</p>
+                                    <p class="text-[10px] text-gray-500">${p.items} (${p.jam})</p>
+                                </div>
+                                <div class="text-right font-black text-indigo-600 text-sm">Rp ${p.total.toLocaleString()}</div>
+                            </div>`;
+                    }
+                });
+                document.getElementById('totalOmzet').innerText = totalOmzet.toLocaleString();
             });
-            document.getElementById('totalOmzet').innerText = total.toLocaleString();
-        });
+        }
+
+        document.getElementById('filterTanggal').addEventListener('change', loadRiwayat);
+        loadRiwayat();
     </script>
 </body>
 </html>

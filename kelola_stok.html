@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Stok - Koperasi 169</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans p-4">
+
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-indigo-900 text-white p-6 rounded-[2rem] shadow-lg mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black italic">MANAJEMEN GUDANG</h1>
+                <p class="text-[10px] opacity-60 uppercase tracking-widest">Update Stok & Harga Barang</p>
+            </div>
+            <a href="index.html" class="bg-white/10 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/20 transition">
+                <i class="fas fa-cash-register mr-2"></i> Kembali ke Kasir
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-1">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-black text-indigo-600 mb-4 uppercase italic">Tambah / Edit Barang</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 ml-2">NAMA BARANG</label>
+                            <input type="text" id="namaBarang" placeholder="Contoh: Buku Sinar Dunia" 
+                                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none focus:ring-2 ring-indigo-500 uppercase">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 ml-2">HARGA JUAL (RP)</label>
+                            <input type="number" id="hargaBarang" placeholder="0" 
+                                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 ml-2">JUMLAH STOK</label>
+                            <input type="number" id="stokBarang" placeholder="0" 
+                                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-xs outline-none">
+                        </div>
+                        <button onclick="simpanBarang()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                            Simpan ke Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+                    <h3 class="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest italic">Stok Saat Ini</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead>
+                                <tr class="text-slate-400 border-b">
+                                    <th class="p-3">BARANG</th>
+                                    <th>HARGA</th>
+                                    <th>STOK</th>
+                                    <th class="text-center text-indigo-500">AKSI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelStok" class="divide-y divide-slate-50 font-bold uppercase italic">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUjE8WXa8Py4vnojrXDUR3uCvnQEzP6zQ",
+            authDomain: "e-kantin-91f0c.firebaseapp.com",
+            databaseURL: "https://e-kantin-91f0c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "e-kantin-91f0c",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 1. SIMPAN BARANG
+        function simpanBarang() {
+            const nama = document.getElementById('namaBarang').value.toUpperCase().trim();
+            const harga = parseInt(document.getElementById('hargaBarang').value);
+            const stok = parseInt(document.getElementById('stokBarang').value);
+
+            if(!nama || isNaN(harga) || isNaN(stok)) return alert("Isi semua data dengan benar!");
+
+            db.ref('koperasi/stok/' + nama).set({
+                harga: harga,
+                stok: stok
+            }).then(() => {
+                alert("Barang Berhasil Diperbarui!");
+                document.getElementById('namaBarang').value = "";
+                document.getElementById('hargaBarang').value = "";
+                document.getElementById('stokBarang').value = "";
+            });
+        }
+
+        // 2. TAMPILKAN STOK (REALTIME)
+        db.ref('koperasi/stok').on('value', (snap) => {
+            const data = snap.val();
+            const tabel = document.getElementById('tabelStok');
+            tabel.innerHTML = '';
+
+            for(let key in data) {
+                const item = data[key];
+                tabel.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-indigo-900">${key}</td>
+                        <td class="text-slate-600">Rp ${item.harga.toLocaleString()}</td>
+                        <td>
+                            <span class="${item.stok < 5 ? 'text-red-500' : 'text-green-600'} font-black">
+                                ${item.stok}
+                            </span>
+                        </td>
+                        <td class="text-center p-2">
+                            <button onclick="hapusBarang('${key}')" class="text-red-300 hover:text-red-500 p-2">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="editBarang('${key}', ${item.harga}, ${item.stok})" class="text-indigo-400 hover:text-indigo-700 p-2">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            }
+        });
+
+        // 3. FUNGSI EDIT & HAPUS
+        function editBarang(nama, harga, stok) {
+            document.getElementById('namaBarang').value = nama;
+            document.getElementById('hargaBarang').value = harga;
+            document.getElementById('stokBarang').value = stok;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hapusBarang(nama) {
+            if(confirm("Hapus barang " + nama + " dari database?")) {
+                db.ref('koperasi/stok/' + nama).remove();
+            }
+        }
+    </script>
+</body>
+</html>

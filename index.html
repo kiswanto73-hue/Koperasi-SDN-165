@@ -3,91 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koperasi Cashless SDN 169 - Realtime</title>
+    <title>Koperasi Smart 169 - Final Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-indigo-50 font-sans min-h-screen pb-10">
+<body class="bg-slate-50 min-h-screen pb-10">
 
-    <nav class="bg-indigo-900 p-6 text-white shadow-lg sticky top-0 z-50">
+    <nav class="bg-indigo-950 p-6 text-white shadow-2xl sticky top-0 z-50 border-b-4 border-yellow-400">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="font-black tracking-tighter text-2xl italic">KOPERASI SMART 169</h1>
-                <p class="text-[10px] opacity-70 uppercase tracking-widest">Sistem Penjualan Terintegrasi Saldo</p>
-            </div>
-            <div class="flex gap-4">
-                <div class="bg-indigo-800 p-3 rounded-2xl border border-indigo-700 text-center min-w-[120px]">
-                    <p class="text-[9px] uppercase opacity-60">Omzet Filter</p>
-                    <p class="font-bold text-yellow-400">Rp <span id="totalOmzet">0</span></p>
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 text-indigo-950 p-2 rounded-xl font-black text-xl italic">169</div>
+                <div>
+                    <h1 class="font-black tracking-tighter text-xl italic leading-none uppercase">Koperasi Smart Cashless</h1>
+                    <p class="text-[9px] opacity-60 uppercase tracking-widest mt-1">Sistem Integrasi Saldo E-Kantin</p>
                 </div>
+            </div>
+            <div class="flex gap-4 items-center">
+                <div class="text-right">
+                    <p class="text-[9px] opacity-50 uppercase">Omzet Terfilter:</p>
+                    <p class="font-black text-yellow-400 text-xl">Rp <span id="totalOmzet">0</span></p>
+                </div>
+                <div class="h-10 w-[2px] bg-white/10 mx-2"></div>
+                <input type="date" id="filterTanggal" class="bg-indigo-800 p-2 rounded-xl text-xs font-bold border border-indigo-700 outline-none">
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
         
         <div class="lg:col-span-5 space-y-6">
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-xl border-t-8 border-indigo-600">
-                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase italic">Arahkan Kursor & Scan Kartu:</label>
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-xl border border-indigo-100 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5 text-6xl rotate-12"><i class="fas fa-barcode"></i></div>
+                <label class="block text-[10px] font-black text-indigo-400 mb-3 uppercase tracking-widest italic">Arahkan Scanner & Tembak Barcode:</label>
                 <input type="text" id="inputBarcode" autofocus 
-                    class="w-full p-5 text-center text-xl font-black bg-slate-50 border-2 border-indigo-100 rounded-2xl focus:ring-4 focus:ring-indigo-500 outline-none" 
-                    placeholder="SCAN BARCODE DI SINI">
+                    class="w-full p-5 text-center text-2xl font-black bg-slate-50 border-2 border-dashed border-indigo-200 rounded-3xl focus:ring-4 focus:ring-yellow-400 focus:border-indigo-500 outline-none transition-all" 
+                    placeholder="[ KLIK DISINI ]">
                 
-                <div id="infoSiswa" class="mt-4 p-4 bg-green-50 rounded-2xl border border-green-100 hidden">
-                    <p class="text-[10px] text-green-600 font-bold uppercase">Anggota Terdeteksi:</p>
-                    <div class="flex justify-between items-end">
-                        <h2 id="dispNama" class="text-lg font-black text-indigo-900">-</h2>
-                        <h2 id="dispSaldo" class="text-xl font-black text-green-700">Rp 0</h2>
+                <div id="infoSiswa" class="mt-4 p-5 bg-indigo-900 rounded-[2rem] text-white hidden transform transition-all scale-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[9px] text-indigo-300 font-bold uppercase">Nama Anggota:</p>
+                            <h2 id="dispNama" class="text-lg font-black leading-tight">-</h2>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[9px] text-indigo-300 font-bold uppercase">Saldo Kantin:</p>
+                            <h2 id="dispSaldo" class="text-xl font-black text-yellow-400">Rp 0</h2>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-md border border-indigo-100">
-                <h3 class="font-bold mb-4 flex justify-between">Keranjang <span><i class="fas fa-shopping-basket"></i></span></h3>
-                <div id="keranjang" class="space-y-2 min-h-[100px] text-sm">
-                    <p class="text-center text-gray-300 py-8 italic">Keranjang kosong...</p>
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-lg border border-slate-200">
+                <h3 class="font-black text-slate-800 mb-4 flex justify-between items-center text-sm">
+                    DAFTAR BELANJA <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px]" id="itemCount">0 Item</span>
+                </h3>
+                <div id="keranjang" class="space-y-3 min-h-[150px] custom-scroll overflow-y-auto max-h-[300px]">
+                    <div class="text-center py-10">
+                        <i class="fas fa-shopping-cart text-slate-200 text-5xl mb-2"></i>
+                        <p class="text-xs text-slate-400 italic">Belum ada barang dipilih</p>
+                    </div>
                 </div>
-                <div class="border-t mt-4 pt-4 flex justify-between items-center font-black">
-                    <span>Total Bayar:</span>
-                    <span id="totalBayar" class="text-2xl text-indigo-600">Rp 0</span>
+                <div class="border-t-2 border-dashed mt-4 pt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold text-slate-500">TOTAL AKHIR:</span>
+                        <span id="totalBayar" class="text-3xl font-black text-indigo-700">Rp 0</span>
+                    </div>
+                    <button onclick="prosesBayar()" class="w-full bg-indigo-600 text-white font-black py-5 rounded-[1.5rem] shadow-lg shadow-indigo-200 hover:bg-green-600 hover:scale-[1.02] active:scale-95 transition-all text-lg flex justify-center items-center gap-3">
+                        <i class="fas fa-fingerprint"></i> BAYAR PAKAI SALDO
+                    </button>
+                    <button onclick="resetKeranjang()" class="w-full mt-3 text-[10px] font-bold text-red-400 uppercase tracking-widest">Batalkan Semua</button>
                 </div>
-                <button onclick="prosesBayar()" class="w-full mt-4 bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-green-600 hover:scale-105 transition-all">PROSES POTONG SALDO</button>
             </div>
         </div>
 
         <div class="lg:col-span-7 space-y-6">
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-indigo-100">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h3 class="font-black text-indigo-900"><i class="fas fa-history mr-2"></i> RIWAYAT PENJUALAN</h3>
-                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl">
-                        <i class="fas fa-filter text-gray-400 ml-2"></i>
-                        <input type="date" id="filterTanggal" class="bg-transparent font-bold text-sm outline-none">
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-indigo-950 text-sm italic uppercase tracking-tighter">Pilih Produk ATK</h3>
+                    <i class="fas fa-th-large text-slate-300"></i>
+                </div>
+                <div id="quickAction" class="grid grid-cols-2 md:grid-cols-3 gap-3">
                     </div>
-                </div>
-
-                <div class="overflow-hidden">
-                    <div id="listPenjualan" class="space-y-3 h-[300px] overflow-y-auto pr-2">
-                        </div>
-                </div>
             </div>
 
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-indigo-100">
-                <h3 class="font-bold mb-4 text-xs text-gray-400 uppercase tracking-widest">Katalog ATK</h3>
-                <div id="quickAction" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
+                <h3 class="font-black text-slate-400 text-[10px] mb-4 uppercase tracking-[0.2em]"><i class="fas fa-stream mr-2"></i> Monitor Transaksi Realtime</h3>
+                <div id="listPenjualan" class="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scroll font-bold italic">
                     </div>
             </div>
         </div>
     </div>
 
     <script>
-        // PAKAI CONFIG BENDAHARA BAPAK
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBc4-0es7edfyw9-V1GdIGJnYxeEW70omc",
-            authDomain: "aplikasi-bintang.firebaseapp.com",
-            databaseURL: "https://aplikasi-bintang-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "aplikasi-bintang",
+            apiKey: "AIzaSyCUjE8WXa8Py4vnojrXDUR3uCvnQEzP6zQ",
+            authDomain: "e-kantin-91f0c.firebaseapp.com",
+            databaseURL: "https://e-kantin-91f0c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "e-kantin-91f0c",
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -96,37 +117,49 @@
         let totalHarga = 0;
         let dataSiswaAktif = null;
 
-        // SET DEFAULT TANGGAL HARI INI
+        // --- SISTEM FOKUS OTOMATIS ---
+        window.onload = () => { document.getElementById('inputBarcode').focus(); };
+        document.addEventListener('click', () => { document.getElementById('inputBarcode').focus(); });
+
+        // Set Default Filter Tanggal
         const hariIni = new Date().toISOString().split('T')[0];
         document.getElementById('filterTanggal').value = hariIni;
 
-        // 1. SCAN BARCODE
+        // --- 1. PROSES SCAN BARCODE (TERINTEGRASI ADMIN) ---
         document.getElementById('inputBarcode').addEventListener('change', function(e) {
-            const idSiswa = e.target.value;
-            db.ref('data_siswa/' + idSiswa).once('value', (snap) => {
+            const idSiswa = e.target.value.trim();
+            if (!idSiswa) return;
+
+            db.ref('kantin_users/' + idSiswa).once('value', (snap) => {
                 const siswa = snap.val();
                 if(siswa) {
                     dataSiswaAktif = { id: idSiswa, ...siswa };
                     document.getElementById('infoSiswa').classList.remove('hidden');
                     document.getElementById('dispNama').innerText = siswa.nama;
-                    document.getElementById('dispSaldo').innerText = "Rp " + siswa.saldo.toLocaleString();
-                } else { alert("Siswa tidak ditemukan!"); }
+                    document.getElementById('dispSaldo').innerText = "Rp " + Number(siswa.saldo).toLocaleString();
+                } else {
+                    alert("Barcode Tidak Terdaftar!");
+                }
                 e.target.value = '';
             });
         });
 
-        // 2. LOAD PRODUK
+        // --- 2. LOAD KATALOG PRODUK ---
         db.ref('koperasi/stok').on('value', (snap) => {
             const data = snap.val();
             const qa = document.getElementById('quickAction');
             qa.innerHTML = '';
             for(let key in data) {
+                const s = data[key];
                 qa.innerHTML += `
-                    <button onclick="tambahKeKeranjang('${key}', ${data[key].harga}, ${data[key].stok})" 
-                        class="p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-indigo-600 hover:text-white transition group text-left">
-                        <p class="text-[10px] font-bold opacity-50 uppercase">${key}</p>
-                        <p class="font-black">Rp ${data[key].harga.toLocaleString()}</p>
-                        <p class="text-[9px] mt-1">Stok: ${data[key].stok}</p>
+                    <button onclick="tambahKeKeranjang('${key}', ${s.harga}, ${s.stok})" 
+                        class="p-4 bg-white border-2 border-slate-100 rounded-[1.5rem] hover:border-indigo-600 hover:shadow-lg transition-all text-left group">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-1">${key}</p>
+                        <p class="font-black text-indigo-950 text-base italic leading-none">Rp ${s.harga.toLocaleString()}</p>
+                        <div class="mt-2 flex justify-between items-center">
+                            <span class="text-[8px] font-bold bg-indigo-50 text-indigo-500 px-2 py-0.5 rounded-md">STOK: ${s.stok}</span>
+                            <i class="fas fa-plus-circle text-indigo-200 group-hover:text-indigo-600"></i>
+                        </div>
                     </button>`;
             }
         });
@@ -140,44 +173,63 @@
         function updateTampilanKeranjang() {
             const div = document.getElementById('keranjang');
             div.innerHTML = ''; totalHarga = 0;
-            keranjangBelanja.forEach(item => {
+            keranjangBelanja.forEach((item, index) => {
                 totalHarga += item.harga;
-                div.innerHTML += `<div class="flex justify-between border-b pb-1 font-medium"><span>${item.nama}</span><span>Rp ${item.harga.toLocaleString()}</span></div>`;
+                div.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span class="font-bold text-slate-700 text-xs uppercase italic">${item.nama}</span>
+                        <div class="flex items-center gap-3">
+                            <b class="text-indigo-600 text-xs">Rp ${item.harga.toLocaleString()}</b>
+                            <button onclick="hapusItem(${index})" class="text-red-300 hover:text-red-600"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    </div>`;
             });
             document.getElementById('totalBayar').innerText = "Rp " + totalHarga.toLocaleString();
+            document.getElementById('itemCount').innerText = keranjangBelanja.length + " Item";
         }
 
-        // 3. PROSES BAYAR & POTONG STOK
+        function hapusItem(index) {
+            keranjangBelanja.splice(index, 1);
+            updateTampilanKeranjang();
+        }
+
+        function resetKeranjang() {
+            keranjangBelanja = [];
+            dataSiswaAktif = null;
+            document.getElementById('infoSiswa').classList.add('hidden');
+            updateTampilanKeranjang();
+        }
+
+        // --- 3. PROSES BAYAR & POTONG SALDO ---
         function prosesBayar() {
-            if(!dataSiswaAktif || keranjangBelanja.length === 0) return alert("Lengkapi data!");
-            if(dataSiswaAktif.saldo < totalHarga) return alert("Saldo tidak cukup!");
+            if(!dataSiswaAktif) return alert("Scan Kartu Siswa Dulu!");
+            if(keranjangBelanja.length === 0) return alert("Keranjang masih kosong!");
+            if(Number(dataSiswaAktif.saldo) < totalHarga) return alert("Saldo Tidak Cukup!");
 
-            const tglKey = document.getElementById('filterTanggal').value;
+            const filterTgl = document.getElementById('filterTanggal').value;
             const updates = {};
-            
-            // Kurangi Saldo
-            updates['data_siswa/' + dataSiswaAktif.id + '/saldo'] = dataSiswaAktif.saldo - totalHarga;
+            const itemsName = keranjangBelanja.map(i => i.nama).join(", ");
 
-            // Simpan Penjualan
+            // Potong Saldo (KANTIN_USERS)
+            updates['kantin_users/' + dataSiswaAktif.id + '/saldo'] = Number(dataSiswaAktif.saldo) - totalHarga;
+
+            // Catat Laporan (KOPERASI/PENJUALAN)
             const salesKey = db.ref('koperasi/penjualan').push().key;
-            const dataJual = {
+            updates['koperasi/penjualan/' + salesKey] = {
                 namaSiswa: dataSiswaAktif.nama,
-                items: keranjangBelanja.map(i => i.nama).join(", "),
+                items: itemsName,
                 total: totalHarga,
                 jam: new Date().toLocaleTimeString('id-ID'),
-                tanggal: tglKey
+                tanggal: filterTgl
             };
-            updates['koperasi/penjualan/' + salesKey] = dataJual;
 
             db.ref().update(updates).then(() => {
-                alert("Berhasil!");
-                keranjangBelanja = []; dataSiswaAktif = null;
-                document.getElementById('infoSiswa').classList.add('hidden');
-                updateTampilanKeranjang();
-            });
+                alert("🛒 PEMBAYARAN BERHASIL!\nSiswa: " + dataSiswaAktif.nama + "\nTotal: Rp " + totalHarga.toLocaleString());
+                resetKeranjang();
+            }).catch(err => alert("Gagal transaksi: " + err.message));
         }
 
-        // 4. REALTIME MONITOR & FILTER TANGGAL
+        // --- 4. MONITORING RIWAYAT & FILTER ---
         function loadRiwayat() {
             const filterTgl = document.getElementById('filterTanggal').value;
             db.ref('koperasi/penjualan').on('value', (snap) => {
@@ -185,7 +237,6 @@
                 const list = document.getElementById('listPenjualan');
                 let totalOmzet = 0;
                 list.innerHTML = '';
-
                 if(!data) return;
 
                 Object.keys(data).reverse().forEach(key => {
@@ -193,12 +244,12 @@
                     if(p.tanggal === filterTgl) {
                         totalOmzet += p.total;
                         list.innerHTML += `
-                            <div class="flex justify-between items-center p-4 bg-slate-50 border-l-4 border-indigo-500 rounded-xl">
+                            <div class="flex justify-between items-center p-4 bg-white border-l-4 border-indigo-600 rounded-2xl shadow-sm mb-2">
                                 <div>
-                                    <p class="text-sm font-black text-slate-800">${p.namaSiswa}</p>
-                                    <p class="text-[10px] text-gray-500">${p.items} (${p.jam})</p>
+                                    <p class="text-xs font-black text-indigo-900 uppercase">${p.namaSiswa}</p>
+                                    <p class="text-[9px] text-slate-400">${p.items} - <span class="text-indigo-300 font-bold">${p.jam}</span></p>
                                 </div>
-                                <div class="text-right font-black text-indigo-600 text-sm">Rp ${p.total.toLocaleString()}</div>
+                                <div class="text-right font-black text-indigo-600 text-sm italic">Rp ${p.total.toLocaleString()}</div>
                             </div>`;
                     }
                 });

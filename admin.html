@@ -71,11 +71,14 @@
             </div>
 
             <div class="lg:col-span-2 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
-                <h3 class="text-xs font-black text-indigo-900 mb-4 uppercase italic flex items-center gap-2">
-                    <i class="fas fa-boxes text-emerald-500"></i> Manajemen Inventaris & Margin
-                </h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-black text-indigo-900 uppercase italic flex items-center gap-2">
+                        <i class="fas fa-boxes text-emerald-500"></i> Manajemen Inventaris & Margin
+                    </h3>
+                    <input type="text" id="cariBarang" onkeyup="filterTabelStok()" placeholder="Cari nama barang..." class="bg-slate-100 px-4 py-2 rounded-xl text-[10px] font-bold outline-none focus:ring-2 ring-indigo-500">
+                </div>
                 <div class="overflow-x-auto max-h-[400px]">
-                    <table class="w-full text-[11px] font-bold">
+                    <table class="w-full text-[11px] font-bold" id="tabelInventaris">
                         <thead class="sticky top-0 bg-white shadow-sm z-10">
                             <tr class="text-slate-400 uppercase border-b">
                                 <th class="p-3 text-left">Barang</th>
@@ -133,7 +136,6 @@
 
         document.getElementById('filterTanggal').valueAsDate = new Date();
 
-        // --- 1. LOGIKA INVENTARIS (PINDAHAN KELOLA STOK) ---
         function simpanBarangBaru() {
             const nama = document.getElementById('newNama').value.trim().toUpperCase();
             const hBeli = parseInt(document.getElementById('newBeli').value);
@@ -142,129 +144,10 @@
             if(!nama || isNaN(hBeli) || isNaN(stok)) return alert("Lengkapi data barang!");
 
             db.ref('koperasi/stok/' + nama).set({
-                harga: hBeli + (hBeli * 0.1), // Default jual untung 10%
+                harga: Math.ceil(hBeli + (hBeli * 0.1)), 
                 harga_beli: hBeli,
                 stok: stok
             }).then(() => {
                 alert("Barang berhasil didaftarkan!");
                 document.getElementById('newNama').value = "";
-                document.getElementById('newBeli').value = "";
-                document.getElementById('newStok').value = "";
-            });
-        }
-
-        function loadKeuanganKoperasi() {
-            db.ref('koperasi/stok').on('value', snap => {
-                const container = document.getElementById('tabelUntungRugi');
-                container.innerHTML = "";
-                let totalModalSemua = 0;
-                let count = 0;
-                
-                snap.forEach(itemSnap => {
-                    count++;
-                    const nama = itemSnap.key;
-                    const d = itemSnap.val();
-                    const hBeli = d.harga_beli || 0;
-                    const hJual = d.harga || 0;
-                    const margin = hBeli > 0 ? Math.round(((hJual - hBeli) / hBeli) * 100) : 0;
-                    
-                    totalModalSemua += (hBeli * d.stok);
-
-                    container.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 transition-all">
-                            <td class="p-3 uppercase text-indigo-900 leading-tight">${nama}</td>
-                            <td class="p-3">
-                                <input type="number" value="${hBeli}" onchange="updateDb('${nama}', 'harga_beli', this.value)" 
-                                    class="w-full bg-slate-100 p-2 rounded-xl border-none outline-none focus:ring-2 ring-indigo-500 text-[10px]">
-                            </td>
-                            <td class="p-3 text-center">
-                                <button onclick="hitungMargin('${nama}', ${hBeli})" class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[10px]">
-                                    <i class="fas fa-percent text-[8px]"></i> ${margin}
-                                </button>
-                            </td>
-                            <td class="p-3">
-                                <input type="number" value="${hJual}" onchange="updateDb('${nama}', 'harga', this.value)" 
-                                    class="w-full bg-emerald-50 text-emerald-700 p-2 rounded-xl border-none outline-none font-black text-[10px]">
-                            </td>
-                            <td class="p-3">
-                                <input type="number" value="${d.stok}" onchange="updateDb('${nama}', 'stok', this.value)" 
-                                    class="w-16 bg-orange-50 text-orange-700 p-2 rounded-xl border-none outline-none font-bold text-[10px] text-center">
-                            </td>
-                            <td class="p-3 text-right">
-                                <button onclick="hapusBarang('${nama}')" class="text-slate-300 hover:text-red-500 transition-colors">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                });
-                document.getElementById('totalModal').innerText = "Rp " + totalModalSemua.toLocaleString();
-                document.getElementById('totalProduk').innerText = count;
-            });
-        }
-
-        function updateDb(nama, field, nilai) {
-            db.ref(`koperasi/stok/${nama}/${field}`).set(parseInt(nilai));
-        }
-
-        function hapusBarang(nama) {
-            if(confirm("Hapus " + nama + " dari database?")) {
-                db.ref(`koperasi/stok/${nama}`).remove();
-            }
-        }
-
-        function hitungMargin(nama, hBeli) {
-            const persen = prompt("Tentukan Persen Keuntungan (%):", "10");
-            if (persen != null) {
-                const hargaBaru = Math.ceil(hBeli * (1 + parseInt(persen)/100));
-                db.ref(`koperasi/stok/${nama}/harga`).set(hargaBaru);
-            }
-        }
-
-        // --- 2. LOGIKA OMSET & RIWAYAT ---
-        function loadRiwayat() {
-            const tglFilter = document.getElementById('filterTanggal').value;
-            const tglIndo = new Date(tglFilter).toLocaleDateString('id-ID');
-
-            db.ref('kantin_laporan').on('value', snap => {
-                const container = document.getElementById('tabelRiwayat');
-                container.innerHTML = "";
-                let omsetKop = 0;
-                let untungKop = 0;
-
-                db.ref('koperasi/stok').once('value', stokSnap => {
-                    const dataStok = stokSnap.val() || {};
-
-                    snap.forEach(child => {
-                        const d = child.val();
-                        if (d.waktu.includes(tglIndo)) {
-                            const isKop = d.unit === "KOPERASI";
-                            if (isKop) {
-                                omsetKop += d.total;
-                                const namaItem = d.item.split(", ")[0]; 
-                                if(dataStok[namaItem]) {
-                                    untungKop += (dataStok[namaItem].harga - dataStok[namaItem].harga_beli);
-                                }
-                            }
-
-                            container.innerHTML = `
-                                <tr class="border-b border-indigo-900/50 hover:bg-indigo-900/50 transition-all">
-                                    <td class="p-3 text-center text-indigo-400 font-bold">${d.waktu.split(" ")[1]}</td>
-                                    <td class="p-3 uppercase">${d.namaSiswa}</td>
-                                    <td class="p-3 text-[10px] max-w-xs truncate uppercase text-slate-300">${d.item}</td>
-                                    <td class="p-3 text-center"><span class="bg-indigo-800 px-2 py-0.5 rounded text-[8px] uppercase border border-indigo-700">${d.unit || 'KANTIN'}</span></td>
-                                    <td class="p-3 text-right text-yellow-400 font-black">Rp ${d.total.toLocaleString()}</td>
-                                </tr>` + container.innerHTML;
-                        }
-                    });
-
-                    document.getElementById('omsetHarian').innerText = "Rp " + omsetKop.toLocaleString();
-                    document.getElementById('totalUntung').innerText = "Rp " + untungKop.toLocaleString();
-                });
-            });
-        }
-
-        loadKeuanganKoperasi();
-        loadRiwayat();
-    </script>
-</body>
-</html>
+                document.getElementById('newB

@@ -6,8 +6,8 @@
     <title>Pusat Kendali Keuangan - SDN 169</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen pb-20 font-sans">
 
@@ -26,19 +26,19 @@
         
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-blue-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Aset Modal Barang</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Aset Modal Stok</p>
                 <h2 id="totalModal" class="text-2xl font-black text-blue-600 tracking-tighter">Rp 0</h2>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-indigo-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Omset Koperasi (Filter)</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Omset (Hari Ini)</p>
                 <h2 id="omsetHarian" class="text-2xl font-black text-indigo-600 tracking-tighter">Rp 0</h2>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-emerald-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Profit Terjual (Filter)</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Estimasi Profit (Hari Ini)</p>
                 <h2 id="totalUntung" class="text-2xl font-black text-emerald-600 tracking-tighter">Rp 0</h2>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-orange-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Total Macam Produk</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Total Produk</p>
                 <h2 id="totalProduk" class="text-2xl font-black text-orange-600">0</h2>
             </div>
         </div>
@@ -52,11 +52,11 @@
                 <div class="space-y-4">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Nama Barang</label>
-                        <input type="text" id="newNama" placeholder="Contoh: BUKU SIDU" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-xs outline-none focus:border-indigo-500 uppercase">
+                        <input type="text" id="newNama" placeholder="CONTOH: PENSIL 2B" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-xs outline-none focus:border-indigo-500 uppercase">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Harga Beli</label>
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Harga Modal</label>
                             <input type="number" id="newBeli" placeholder="0" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-xs outline-none focus:border-indigo-500">
                         </div>
                         <div>
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                     <button onclick="simpanBarangBaru()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all uppercase text-[10px] tracking-widest">
-                        Daftarkan Ke Database
+                        SIMPAN KE DATABASE
                     </button>
                 </div>
             </div>
@@ -73,23 +73,23 @@
             <div class="lg:col-span-2 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xs font-black text-indigo-900 uppercase italic flex items-center gap-2">
-                        <i class="fas fa-boxes text-emerald-500"></i> Manajemen Inventaris & Margin
+                        <i class="fas fa-boxes text-emerald-500"></i> Inventaris & Margin (10%)
                     </h3>
-                    <input type="text" id="cariBarang" onkeyup="filterTabelStok()" placeholder="Cari nama barang..." class="bg-slate-100 px-4 py-2 rounded-xl text-[10px] font-bold outline-none focus:ring-2 ring-indigo-500">
+                    <input type="text" id="cariBarang" onkeyup="filterTabelStok()" placeholder="Cari..." class="bg-slate-100 px-4 py-2 rounded-xl text-[10px] font-bold outline-none focus:ring-2 ring-indigo-500">
                 </div>
                 <div class="overflow-x-auto max-h-[400px]">
-                    <table class="w-full text-[11px] font-bold" id="tabelInventaris">
-                        <thead class="sticky top-0 bg-white shadow-sm z-10">
-                            <tr class="text-slate-400 uppercase border-b">
-                                <th class="p-3 text-left">Barang</th>
-                                <th class="p-3 text-left w-24">Harga Modal</th>
+                    <table class="w-full text-[11px] font-bold">
+                        <thead class="sticky top-0 bg-white shadow-sm">
+                            <tr class="text-slate-400 uppercase border-b text-left">
+                                <th class="p-3">Nama Barang</th>
+                                <th class="p-3">Modal</th>
                                 <th class="p-3 text-center">Margin</th>
-                                <th class="p-3 text-left w-24">Harga Jual</th>
-                                <th class="p-3 text-left">Stok</th>
-                                <th class="p-3 text-right">Opsi</th>
+                                <th class="p-3">Jual</th>
+                                <th class="p-3">Stok</th>
+                                <th class="p-3 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="tabelUntungRugi"></tbody>
+                        <tbody id="tabelUntungRugi" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
@@ -98,30 +98,26 @@
         <div class="bg-indigo-950 p-6 rounded-[2.5rem] shadow-xl">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h3 class="text-xs font-black text-yellow-400 uppercase italic flex items-center gap-2">
-                    <i class="fas fa-history"></i> Log Penjualan & Filter Tanggal
+                    <i class="fas fa-history"></i> Log Penjualan & Filter
                 </h3>
-                <div class="flex items-center gap-2 bg-indigo-900 p-2 rounded-2xl border border-indigo-800 shadow-inner">
-                    <i class="fas fa-calendar text-indigo-400 ml-2"></i>
-                    <input type="date" id="filterTanggal" onchange="loadRiwayat()" 
-                        class="bg-transparent text-white text-[10px] font-bold outline-none uppercase cursor-pointer">
+                <div class="flex items-center gap-2 bg-indigo-900 p-2 rounded-2xl border border-indigo-800">
+                    <input type="date" id="filterTanggal" onchange="loadLaporan()" class="bg-transparent text-white text-[10px] font-bold outline-none uppercase p-1">
                 </div>
             </div>
             <div class="overflow-x-auto max-h-[400px]">
                 <table class="w-full text-left text-[11px]">
                     <thead class="text-indigo-300 uppercase italic border-b border-indigo-800">
                         <tr>
-                            <th class="p-3 text-center">Jam</th>
-                            <th class="p-3">Siswa/Anggota</th>
-                            <th class="p-3">Item Belanja</th>
-                            <th class="p-3 text-center">Unit</th>
-                            <th class="p-3 text-right">Total Transaksi</th>
+                            <th class="p-3">Waktu</th>
+                            <th class="p-3">Siswa</th>
+                            <th class="p-3">Item</th>
+                            <th class="p-3 text-right">Total</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelRiwayat" class="text-white font-medium italic"></tbody>
+                    <tbody id="tabelRiwayat" class="text-white italic"></tbody>
                 </table>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -135,19 +131,131 @@
         const db = firebase.database();
 
         document.getElementById('filterTanggal').valueAsDate = new Date();
+        let databaseBarang = {};
 
+        // 1. LOAD STOK & PRODUK (REALTIME)
+        db.ref('koperasi/stok').on('value', snap => {
+            const data = snap.val();
+            databaseBarang = data || {};
+            const tbody = document.getElementById('tabelUntungRugi');
+            tbody.innerHTML = "";
+            
+            let totalModalAset = 0;
+            let jumlahMacam = 0;
+
+            for (let nama in data) {
+                const item = data[nama];
+                const modal = item.harga_beli || 0;
+                const jual = item.harga || 0;
+                const margin = jual - modal;
+                const stok = item.stok || 0;
+                
+                totalModalAset += (modal * stok);
+                jumlahMacam++;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 uppercase font-black text-slate-700">${nama}</td>
+                        <td class="p-3 text-slate-400">Rp ${modal.toLocaleString()}</td>
+                        <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-600 px-2 py-1 rounded-lg text-[9px]">+Rp ${margin.toLocaleString()}</span></td>
+                        <td class="p-3 text-indigo-600">Rp ${jual.toLocaleString()}</td>
+                        <td class="p-3"><span class="${stok < 5 ? 'text-red-500' : 'text-slate-600'}">${stok}</span></td>
+                        <td class="p-3 text-right">
+                            <button onclick="hapusBarang('${nama}')" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            }
+            document.getElementById('totalModal').innerText = "Rp " + totalModalAset.toLocaleString();
+            document.getElementById('totalProduk').innerText = jumlahMacam;
+            loadLaporan(); // Refresh laporan saat data barang berubah
+        });
+
+        // 2. LOAD LAPORAN & HITUNG PROFIT (REALTIME)
+        function loadLaporan() {
+            const tglFilter = document.getElementById('filterTanggal').value; // format: YYYY-MM-DD
+            db.ref('kantin_laporan').on('value', snap => {
+                const data = snap.val();
+                const tbody = document.getElementById('tabelRiwayat');
+                tbody.innerHTML = "";
+                
+                let omset = 0;
+                let profit = 0;
+
+                for (let id in data) {
+                    const lapor = data[id];
+                    // Firebase waktu format: "17/4/2026, 10.00.00" atau sejenisnya
+                    // Kita filter berdasarkan tanggal yang dipilih
+                    if (lapor.unit === "KOPERASI" && lapor.waktu.includes(tglFilter.split('-').reverse().join('/'))) {
+                        omset += lapor.total;
+                        
+                        // Hitung Profit Berdasarkan String: "Buku (2), Pensil (1)"
+                        const items = lapor.item.split(', ');
+                        items.forEach(itemStr => {
+                            const match = itemStr.match(/(.+) \((\d+)\)/);
+                            if (match) {
+                                const namaBarang = match[1].trim();
+                                const qty = parseInt(match[2]);
+                                if (databaseBarang[namaBarang]) {
+                                    const modal = databaseBarang[namaBarang].harga_beli || 0;
+                                    const jual = databaseBarang[namaBarang].harga || 0;
+                                    profit += (jual - modal) * qty;
+                                }
+                            }
+                        });
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-indigo-900/50">
+                                <td class="p-3 opacity-60">${lapor.waktu.split(', ')[1]}</td>
+                                <td class="p-3 font-bold text-yellow-400">${lapor.namaSiswa}</td>
+                                <td class="p-3 text-[10px] opacity-80">${lapor.item}</td>
+                                <td class="p-3 text-right font-black">Rp ${lapor.total.toLocaleString()}</td>
+                            </tr>`;
+                    }
+                }
+                document.getElementById('omsetHarian').innerText = "Rp " + omset.toLocaleString();
+                document.getElementById('totalUntung').innerText = "Rp " + profit.toLocaleString();
+            });
+        }
+
+        // 3. FUNGSI SIMPAN
         function simpanBarangBaru() {
             const nama = document.getElementById('newNama').value.trim().toUpperCase();
             const hBeli = parseInt(document.getElementById('newBeli').value);
             const stok = parseInt(document.getElementById('newStok').value);
 
-            if(!nama || isNaN(hBeli) || isNaN(stok)) return alert("Lengkapi data barang!");
+            if(!nama || isNaN(hBeli) || isNaN(stok)) return alert("Isi semua data!");
+
+            // Harga Jual otomatis Modal + 10% (dibulatkan ke atas)
+            const hJual = Math.ceil((hBeli * 1.1) / 500) * 500; 
 
             db.ref('koperasi/stok/' + nama).set({
-                harga: Math.ceil(hBeli + (hBeli * 0.1)), 
+                harga: hJual,
                 harga_beli: hBeli,
                 stok: stok
             }).then(() => {
-                alert("Barang berhasil didaftarkan!");
+                alert("Barang Berhasil Disimpan!");
                 document.getElementById('newNama').value = "";
-                document.getElementById('newB
+                document.getElementById('newBeli').value = "";
+                document.getElementById('newStok').value = "";
+            });
+        }
+
+        // 4. FUNGSI HAPUS
+        function hapusBarang(nama) {
+            if(confirm('Hapus ' + nama + ' dari database?')) {
+                db.ref('koperasi/stok/' + nama).remove();
+            }
+        }
+
+        // 5. FILTER TABEL
+        function filterTabelStok() {
+            const input = document.getElementById('cariBarang').value.toUpperCase();
+            const rows = document.getElementById('tabelUntungRugi').getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const txt = rows[i].textContent || rows[i].innerText;
+                rows[i].style.display = txt.toUpperCase().includes(input) ? "" : "none";
+            }
+        }
+    </script>
+</body>
+</html>

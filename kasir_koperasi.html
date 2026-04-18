@@ -26,7 +26,7 @@
                 </div>
                 <div class="hidden md:block text-right">
                     <p id="jam" class="font-black text-sm">00:00:00</p>
-                    <p class="text-[8px] opacity-50 uppercase font-bold">Waktu Server Aktif</p>
+                    <p class="text-[8px] opacity-50 uppercase font-bold">Waktu Realtime</p>
                 </div>
             </div>
             <button onclick="window.location.href='index.html'" class="bg-white px-8 py-6 rounded-[2rem] shadow font-black text-indigo-900 text-xs border-2 border-slate-100 hover:bg-slate-50 transition-all active:scale-90">PORTAL</button>
@@ -39,7 +39,7 @@
                     <div class="bg-indigo-50 p-3 rounded-2xl mr-4 text-indigo-600">
                         <i class="fas fa-search"></i>
                     </div>
-                    <input type="text" id="inputCari" onkeyup="filterBarang()" placeholder="Cari nama barang di koperasi..." 
+                    <input type="text" id="inputCari" onkeyup="filterBarang()" placeholder="Cari nama barang..." 
                         class="w-full bg-transparent border-none outline-none font-bold text-slate-700 placeholder:text-slate-300 italic uppercase text-sm">
                 </div>
 
@@ -116,7 +116,7 @@
             });
         }
 
-        // 2. FITUR PENCARIAN (FILTER)
+        // 2. FITUR PENCARIAN
         function filterBarang() {
             const input = document.getElementById('inputCari').value.toUpperCase();
             const cards = document.getElementsByClassName('item-card');
@@ -126,7 +126,7 @@
             }
         }
 
-        // 3. KERANJANG
+        // 3. LOGIKA KERANJANG
         function addToCart(nama, harga) {
             cart.push({ nama, harga });
             updateCartDisplay();
@@ -150,13 +150,13 @@
         function removeItem(idx) { cart.splice(idx, 1); updateCartDisplay(); }
         function resetCart() { cart = []; updateCartDisplay(); }
 
-        // 4. PROSES BAYAR (SINKRON DENGAN ADMIN FINANCE)
+        // 4. PROSES PEMBAYARAN & SYNC DATA
         async function prosesBayar(idSiswa) {
             if(cart.length === 0) return;
             const btn = document.getElementById('btnCheckout');
             if (btn.disabled) return;
 
-            btn.innerText = "PROSES...";
+            btn.innerText = "MEMVERIFIKASI...";
             btn.disabled = true;
 
             const trimmedId = idSiswa.trim();
@@ -168,90 +168,93 @@
                 if(!user) throw new Error("KARTU TIDAK TERDAFTAR!");
                 if(user.saldo < total) throw new Error("SALDO TIDAK CUKUP!");
 
-                // Hitung rekap QTY untuk sinkronisasi Profit
+                // A. Rekap QTY & Update Stok
                 const rekapItem = {};
                 cart.forEach(i => { rekapItem[i.nama] = (rekapItem[i.nama] || 0) + 1; });
-                const itemString = Object.keys(rekapItem).map(name => `${name} (${rekapItem[name]})`).join(", ");
-
-                // Update Saldo
-                const saldoBaru = user.saldo - total;
-                await db.ref('kantin_users/' + trimmedId + '/saldo').set(saldoBaru);
-
-                // Update Stok & Detail WA
+                
                 let detailWA = "";
                 for (let namaBarang in rekapItem) {
                     const qty = rekapItem[namaBarang];
-                    detailWA += `\n- ${namaBarang} x${qty}`;
+                    detailWA += `\n- ${namaBarang} (x${qty})`;
+                    // Potong Stok Otomatis
                     await db.ref('koperasi/stok/' + namaBarang + '/stok').transaction(s => (s || 0) - qty);
                 }
 
-                // Simpan Laporan
-                const waktu = new Date().toLocaleString('id-ID');
+                const itemString = Object.keys(rekapItem).map(name => `${name} (${rekapItem[name]})`).join(", ");
+
+                // B. Potong Saldo
+                const saldoBaru = user.saldo - total;
+                await db.ref('kantin_users/' + trimmedId + '/saldo').set(saldoBaru);
+
+                // C. Catat Laporan (Format waktu disesuaikan agar terbaca di Finance)
+                const now = new Date();
+                const waktuString = now.toLocaleDateString('id-ID') + ", " + now.toLocaleTimeString('id-ID', {hour12: false}).replace(/\./g, ':');
+                
                 await db.ref('kantin_laporan').push({
                     idSiswa: trimmedId, 
                     namaSiswa: user.nama, 
                     total: total,
                     item: itemString, 
                     unit: "KOPERASI", 
-                    waktu: waktu
+                    waktu: waktuString
                 });
 
-                // Kirim WA via Fonnte
+                // D. Kirim WhatsApp (Fonnte)
                 if (user.wa) {
+                    let nomorWA = user.wa.toString().trim();
+                    if (nomorWA.startsWith('0')) nomorWA = '62' + nomorWA.substring(1);
+
                     const pesanWA = `*STRUK KOPERASI 169*\n\nNama: *${user.nama}*\nBelanja:${detailWA}\n--------------------------\n*Total: Rp ${total.toLocaleString()}*\nSisa Saldo: *Rp ${saldoBaru.toLocaleString()}*\n\n_Terima kasih telah berbelanja_`;
+                    
                     const fd = new FormData();
-                    fd.append('target', user.wa);
+                    fd.append('target', nomorWA);
                     fd.append('message', pesanWA);
-                    fetch('https://api.fonnte.com/send', { method:'POST', headers:{'Authorization':FONNTE_TOKEN}, body:fd });
+                    
+                    fetch('https://api.fonnte.com/send', { 
+                        method: 'POST', 
+                        headers: { 'Authorization': FONNTE_TOKEN }, 
+                        body: fd 
+                    }).catch(e => console.log("WA Error:", e));
                 }
 
-                alert(`✅ BERHASIL!\n${user.nama}\nSaldo Sisa: Rp ${saldoBaru.toLocaleString()}`);
+                alert(`✅ TRANSAKSI BERHASIL!\nSiswa: ${user.nama}\nSisa Saldo: Rp ${saldoBaru.toLocaleString()}`);
                 resetCart();
 
             } catch (err) {
-                alert("❌ ERROR: " + err.message);
+                alert("❌ GAGAL: " + err.message);
             } finally {
                 btn.innerHTML = `<i class="fas fa-qrcode text-lg"></i> SCAN & BAYAR`;
                 btn.disabled = false;
             }
         }
 
-        // 5. SCANNER BLUETOOTH (HID)
-        let barcodeBuffer = "";
-        let lastKeyTime = Date.now();
-        window.addEventListener("keydown", (e) => {
-            const currentTime = Date.now();
-            if (currentTime - lastKeyTime > 50) barcodeBuffer = "";
-            if (e.key === "Enter") {
-                if (barcodeBuffer.length > 2) {
-                    e.preventDefault();
-                    prosesBayar(barcodeBuffer);
-                    barcodeBuffer = "";
+        // 5. SCANNER KAMERA
+        function bukaScanner() {
+            if(cart.length === 0) return alert("Keranjang masih kosong!");
+            const scannerDiv = document.getElementById('scannerArea');
+            scannerDiv.classList.remove('hidden');
+            
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    html5QrCode.stop().then(() => {
+                        scannerDiv.classList.add('hidden');
+                        prosesBayar(decodedText);
+                    });
                 }
-            } else if (e.key.length === 1) {
-                barcodeBuffer += e.key;
-            }
-            lastKeyTime = currentTime;
-        });
+            ).catch(err => {
+                alert("Kamera tidak diizinkan atau tidak ditemukan.");
+                scannerDiv.classList.add('hidden');
+            });
+        }
 
         // 6. JAM DIGITAL
         setInterval(() => {
-            const jamEl = document.getElementById('jam');
-            if(jamEl) jamEl.innerText = new Date().toLocaleTimeString('id-ID');
+            const el = document.getElementById('jam');
+            if(el) el.innerText = new Date().toLocaleTimeString('id-ID');
         }, 1000);
-
-        // 7. SCANNER KAMERA QR
-        function bukaScanner() {
-            if(cart.length === 0) return alert("Pilih barang dulu!");
-            document.getElementById('scannerArea').classList.remove('hidden');
-            const sc = new Html5Qrcode("reader");
-            sc.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (id) => {
-                sc.stop().then(() => {
-                    document.getElementById('scannerArea').classList.add('hidden');
-                    prosesBayar(id);
-                });
-            });
-        }
 
         loadStok();
     </script>

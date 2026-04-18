@@ -8,8 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20 font-sans">
+<body class="bg-slate-50 min-h-screen pb-20">
 
     <nav class="bg-indigo-950 p-6 text-white shadow-xl border-b-4 border-yellow-400 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
@@ -30,15 +34,15 @@
                 <h2 id="totalModal" class="text-2xl font-black text-blue-600 tracking-tighter">Rp 0</h2>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-indigo-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase text-indigo-400">Omset (Filter)</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Omset (Filter)</p>
                 <h2 id="omsetHarian" class="text-2xl font-black text-indigo-600 tracking-tighter">Rp 0</h2>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-emerald-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase text-emerald-400">Profit (Filter)</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Profit (Filter)</p>
                 <h2 id="totalUntung" class="text-2xl font-black text-emerald-600 tracking-tighter">Rp 0</h2>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border-l-8 border-orange-500">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Total Macam Produk</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Produk Aktif</p>
                 <h2 id="totalProduk" class="text-2xl font-black text-orange-600">0</h2>
             </div>
         </div>
@@ -52,7 +56,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Nama Barang</label>
-                        <input type="text" id="newNama" placeholder="CONTOH: BUKU SIDU" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-xs outline-none focus:border-indigo-500 uppercase">
+                        <input type="text" id="newNama" placeholder="CONTOH: PENGHAPUS JOYKO" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-xs outline-none focus:border-indigo-500 uppercase">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -65,7 +69,7 @@
                         </div>
                     </div>
                     <button onclick="simpanBarangBaru()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all uppercase text-[10px] tracking-widest">
-                        DAFTARKAN KE DATABASE
+                        SIMPAN KE DATABASE
                     </button>
                 </div>
             </div>
@@ -73,7 +77,7 @@
             <div class="lg:col-span-2 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xs font-black text-indigo-900 uppercase italic flex items-center gap-2">
-                        <i class="fas fa-boxes text-emerald-500"></i> Manajemen Inventaris & Margin
+                        <i class="fas fa-boxes text-emerald-500"></i> Inventaris & Margin (10%)
                     </h3>
                     <input type="text" id="cariBarang" onkeyup="filterTabelStok()" placeholder="Cari..." class="bg-slate-100 px-4 py-2 rounded-xl text-[10px] font-bold outline-none focus:ring-2 ring-indigo-500">
                 </div>
@@ -81,11 +85,11 @@
                     <table class="w-full text-[11px] font-bold">
                         <thead class="sticky top-0 bg-white shadow-sm border-b">
                             <tr class="text-slate-400 uppercase text-left">
-                                <th class="p-3">Nama Produk</th>
-                                <th class="p-3">Harga Beli</th>
-                                <th class="p-3 text-center">Jual (Persen)</th>
-                                <th class="p-3">Stok</th>
-                                <th class="p-3 text-right">Opsi</th>
+                                <th class="p-3">Barang</th>
+                                <th class="p-3">Modal</th>
+                                <th class="p-3 text-center">Jual (Margin)</th>
+                                <th class="p-3 text-center">Stok</th>
+                                <th class="p-3 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tabelUntungRugi" class="divide-y divide-slate-50"></tbody>
@@ -97,21 +101,18 @@
         <div class="bg-indigo-950 p-6 rounded-[2.5rem] shadow-xl">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h3 class="text-xs font-black text-yellow-400 uppercase italic flex items-center gap-2">
-                    <i class="fas fa-history"></i> Log Penjualan & Filter Tanggal
+                    <i class="fas fa-history"></i> Log Penjualan & Filter
                 </h3>
-                <div class="flex items-center gap-2 bg-indigo-900 p-2 rounded-2xl border border-indigo-800">
-                    <input type="date" id="filterTanggal" onchange="loadLaporan()" class="bg-transparent text-white text-[10px] font-bold outline-none uppercase p-1">
-                </div>
+                <input type="date" id="filterTanggal" onchange="loadLaporan()" class="bg-indigo-900 text-white text-[10px] font-bold outline-none uppercase p-2 rounded-xl border border-indigo-800">
             </div>
             <div class="overflow-x-auto max-h-[400px]">
                 <table class="w-full text-left text-[11px]">
                     <thead class="text-indigo-300 uppercase italic border-b border-indigo-800">
                         <tr>
-                            <th class="p-3 text-center">Jam</th>
-                            <th class="p-3">Siswa/Anggota</th>
-                            <th class="p-3">Item Belanja</th>
-                            <th class="p-3 text-center">Unit</th>
-                            <th class="p-3 text-right">Total Transaksi</th>
+                            <th class="p-3">Waktu</th>
+                            <th class="p-3">Siswa</th>
+                            <th class="p-3">Item</th>
+                            <th class="p-3 text-right">Total</th>
                         </tr>
                     </thead>
                     <tbody id="tabelRiwayat" class="text-white italic"></tbody>
@@ -127,13 +128,13 @@
             databaseURL: "https://e-kantin-91f0c-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "e-kantin-91f0c",
         };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         document.getElementById('filterTanggal').valueAsDate = new Date();
         let databaseBarang = {};
 
-        // 1. LOAD STOK & PRODUK (REALTIME)
+        // 1. LOAD STOK & PRODUK
         db.ref('koperasi/stok').on('value', snap => {
             const data = snap.val();
             databaseBarang = data || {};
@@ -157,17 +158,19 @@
                         <td class="p-3 uppercase font-black text-slate-700">${nama}</td>
                         <td class="p-3 text-slate-400">Rp ${modal.toLocaleString()}</td>
                         <td class="p-3 text-center">
-                            <button onclick="ubahPersen('${nama}', ${modal}, ${jual})" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-xl hover:bg-indigo-100">
-                                Rp ${jual.toLocaleString()} (${Math.round(((jual-modal)/modal)*100)}%)
+                            <button onclick="ubahPersen('${nama}', ${modal})" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-xl hover:bg-indigo-100">
+                                Rp ${jual.toLocaleString()} (+Rp ${(jual-modal).toLocaleString()})
                             </button>
                         </td>
-                        <td class="p-3">
-                            <button onclick="ubahStok('${nama}', ${stok})" class="px-3 py-1 bg-slate-100 rounded-xl hover:bg-slate-200">
-                                <span class="${stok < 5 ? 'text-red-500' : 'text-slate-600'}">${stok}</span>
-                            </button>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="editStokCepat('${nama}', -1)" class="w-6 h-6 bg-red-50 text-red-500 rounded-full hover:bg-red-100">-</button>
+                                <span class="w-8 font-black ${stok < 5 ? 'text-red-500' : 'text-slate-600'}">${stok}</span>
+                                <button onclick="editStokCepat('${nama}', 1)" class="w-6 h-6 bg-emerald-50 text-emerald-500 rounded-full hover:bg-emerald-100">+</button>
+                            </div>
                         </td>
-                        <td class="p-3 text-right flex gap-2 justify-end">
-                            <button onclick="hapusBarang('${nama}')" class="text-red-300 hover:text-red-500 transition-colors px-2"><i class="fas fa-trash"></i></button>
+                        <td class="p-3 text-right">
+                            <button onclick="hapusBarang('${nama}')" class="text-red-300 hover:text-red-500 px-2"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
             }
@@ -176,16 +179,32 @@
             loadLaporan(); 
         });
 
-        // 2. LOAD LAPORAN (REALTIME)
-        function loadLaporan() {
-            const tglFilterInput = document.getElementById('filterTanggal').value; 
-            if(!tglFilterInput) return;
+        // 2. FUNGSI EDIT STOK
+        function editStokCepat(nama, jumlah) {
+            const stokSkrg = databaseBarang[nama].stok || 0;
+            const stokBaru = stokSkrg + jumlah;
+            if (stokBaru < 0) return;
+            db.ref('koperasi/stok/' + nama + '/stok').set(stokBaru);
+        }
 
-            // Konversi YYYY-MM-DD ke format Kasir (D/M/YYYY)
-            const parts = tglFilterInput.split('-');
+        // 3. FUNGSI EDIT MARGIN / HARGA JUAL
+        function ubahPersen(nama, modal) {
+            const persen = prompt(`Update Harga Jual ${nama}.\nMasukkan persentase untung yang diinginkan (Contoh: 15 untuk 15%):`, 10);
+            if (persen !== null && !isNaN(persen)) {
+                // Pembulatan ke atas ke 500 terdekat
+                const hJualBaru = Math.ceil((modal * (1 + (parseInt(persen)/100))) / 500) * 500;
+                db.ref('koperasi/stok/' + nama + '/harga').set(hJualBaru);
+            }
+        }
+
+        // 4. LOAD LAPORAN
+        function loadLaporan() {
+            const tglInput = document.getElementById('filterTanggal').value; 
+            if(!tglInput) return;
+            const parts = tglInput.split('-');
             const targetTgl = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parts[0]}`;
 
-            db.ref('kantin_laporan').on('value', snap => {
+            db.ref('kantin_laporan').once('value', snap => {
                 const data = snap.val();
                 const tbody = document.getElementById('tabelRiwayat');
                 tbody.innerHTML = "";
@@ -198,27 +217,26 @@
                     if (l.unit === "KOPERASI" && l.waktu.startsWith(targetTgl)) {
                         omset += l.total;
                         
-                        // Hitung Profit
+                        // Kalkulasi Profit Berdasarkan Laporan Item
                         const items = l.item.split(', ');
                         items.forEach(itemStr => {
                             const match = itemStr.match(/(.+) \((\d+)\)/);
                             if (match) {
-                                const namaBarang = match[1].trim();
+                                const namaB = match[1].trim();
                                 const qty = parseInt(match[2]);
-                                if (databaseBarang[namaBarang]) {
-                                    const modal = databaseBarang[namaBarang].harga_beli || 0;
-                                    const jual = databaseBarang[namaBarang].harga || 0;
-                                    profit += (jual - modal) * qty;
+                                if (databaseBarang[namaB]) {
+                                    const m = databaseBarang[namaB].harga_beli || 0;
+                                    const j = databaseBarang[namaB].harga || 0;
+                                    profit += (j - m) * qty;
                                 }
                             }
                         });
 
                         tbody.innerHTML += `
                             <tr class="border-b border-indigo-900/50">
-                                <td class="p-3 text-center opacity-60">${l.waktu.split(', ')[1]}</td>
+                                <td class="p-3 opacity-60">${l.waktu.split(', ')[1]}</td>
                                 <td class="p-3 font-bold text-yellow-400 uppercase">${l.namaSiswa}</td>
                                 <td class="p-3 text-[10px] opacity-80 uppercase">${l.item}</td>
-                                <td class="p-3 text-center"><span class="bg-indigo-800 px-2 py-0.5 rounded text-[9px]">KOPERASI</span></td>
                                 <td class="p-3 text-right font-black">Rp ${l.total.toLocaleString()}</td>
                             </tr>`;
                     }
@@ -228,27 +246,15 @@
             });
         }
 
-        // 3. FUNGSI EDIT & SIMPAN
-        function ubahStok(nama, stokLama) {
-            const baru = prompt(`Update Stok ${nama}:`, stokLama);
-            if (baru !== null) db.ref('koperasi/stok/' + nama + '/stok').set(parseInt(baru));
-        }
-
-        function ubPersen(nama, modal, jualLama) {
-            const persen = prompt(`Mau untung berapa persen? (Masukkan angka saja, misal 15)`, 10);
-            if (persen !== null) {
-                const hJualBaru = Math.ceil((modal * (1 + (parseInt(persen)/100))) / 500) * 500;
-                db.ref('koperasi/stok/' + nama + '/harga').set(hJualBaru);
-            }
-        }
-
+        // 5. TAMBAH & HAPUS
         function simpanBarangBaru() {
             const nama = document.getElementById('newNama').value.trim().toUpperCase();
             const hBeli = parseInt(document.getElementById('newBeli').value);
             const stok = parseInt(document.getElementById('newStok').value);
 
-            if(!nama || isNaN(hBeli) || isNaN(stok)) return alert("Isi semua data!");
+            if(!nama || isNaN(hBeli) || isNaN(stok)) return alert("Isi data dengan lengkap!");
 
+            // Default untung 10% dibulatkan ke 500 terdekat
             const hJual = Math.ceil((hBeli * 1.1) / 500) * 500; 
 
             db.ref('koperasi/stok/' + nama).set({
@@ -256,7 +262,7 @@
                 harga_beli: hBeli,
                 stok: stok
             }).then(() => {
-                alert("Barang Berhasil Disimpan!");
+                alert("Barang tersimpan!");
                 document.getElementById('newNama').value = "";
                 document.getElementById('newBeli').value = "";
                 document.getElementById('newStok').value = "";
@@ -264,14 +270,14 @@
         }
 
         function hapusBarang(nama) {
-            if(confirm('Hapus ' + nama + '?')) db.ref('koperasi/stok/' + nama).remove();
+            if(confirm('Hapus permanent ' + nama + '?')) db.ref('koperasi/stok/' + nama).remove();
         }
 
         function filterTabelStok() {
-            const input = document.getElementById('cariBarang').value.toUpperCase();
-            const rows = document.getElementById('tabelUntungRugi').getElementsByTagName('tr');
-            for (let i = 0; i < rows.length; i++) {
-                rows[i].style.display = rows[i].innerText.toUpperCase().includes(input) ? "" : "none";
+            const val = document.getElementById('cariBarang').value.toUpperCase();
+            const tr = document.getElementById('tabelUntungRugi').getElementsByTagName('tr');
+            for (let i = 0; i < tr.length; i++) {
+                tr[i].style.display = tr[i].innerText.toUpperCase().includes(val) ? "" : "none";
             }
         }
     </script>
